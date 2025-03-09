@@ -1,42 +1,53 @@
+import streamlit as st
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 
-
-# For this activity I will use the diamonds dataset from seaborn
 diamonds = sns.load_dataset('diamonds')
-print(diamonds.head()) # to discover the data 
-print(diamonds.columns)
+st.title("Diamond price analysis: A/B Testing")
 
+st.write("Preview of the Diamonds Dataset:")
+st.dataframe(diamonds.head())  
 
-# Add these lines to handle SSL verification
-#import ssl
-#ssl._create_default_https_context = ssl._create_unverified_context
+# Business Question
+st.subheader("What are the factors that influence the price of a diamond the most?")
 
-# Business Question considering this diamond dataset: What are the factors that influence the most the price of a diamond?
-# For the A/B Testing I will create two different charts: A boxplot to compare prices accross different cut categories and a line chart to show the relationship between carat size and price. 
+st.write(
+    "This app compares two different visualizations: \n"
+    "- A **boxplot** to compare prices across different cut categories\n"
+    "- A **line chart** to show the relationship between carat size and price"
+)
 
-# 1. BOX PLOT: "Does cut quality affect price?"
-plt.figure(figsize=(12, 6))
-sns.boxplot(data =diamonds, x ="cut", y ="price", palette ="pastel", width =0.6, showfliers =False)
-plt.title("Diamond price by Cut quality", fontsize =16, fontweight ="bold")
-plt.xlabel("Cut quality", fontsize =14)
-plt.ylabel("Price", fontsize =14)
-plt.xticks(fontsize =12)
-plt.yticks(fontsize =12)
-plt.show()
+# Function 1: Boxplot (Cut vs. Price)
+def plot_boxplot():
+    fig, ax = plt.subplots(figsize=(12, 6))
+    sns.boxplot(data=diamonds, x="cut", y="price", palette="pastel", width=0.6, showfliers=False, ax=ax)
+    ax.set_title("💎 Diamond Price by Cut Quality", fontsize=16, fontweight="bold")
+    ax.set_xlabel("Cut Quality", fontsize=14)
+    ax.set_ylabel("Price ($)", fontsize=14)
+    st.pyplot(fig)
 
+# Function 2: Line Chart (Carat vs. Price)
+def plot_linechart():
+    fig, ax = plt.subplots(figsize=(12, 6))
+    diamonds_sorted = diamonds.sort_values("carat")
+    diamonds_sorted["rolling_price"] = diamonds_sorted["price"].rolling(50).median()
 
-# 2. Line Chart - Median Price by Carat
-plt.figure(figsize =(12, 6))
-diamonds_sorted = diamonds.sort_values("carat")
-diamonds_sorted["rolling_price"] = diamonds_sorted["price"].rolling(50).median()
-sns.lineplot(data =diamonds_sorted, x ="carat", y ="rolling_price", color ="blue", linewidth =2)
-plt.title("How Carat size affects diamond price", fontsize=16, fontweight="bold")
-plt.xlabel("Carat Size", fontsize=14)
-plt.ylabel("Median Price", fontsize=14)
-#plt.annotate("Price jumps after 2 carats", xy=(2, 8000), xytext=(2.5, 12000), arrowprops=dict(facecolor='red', shrink=0.05), fontsize=12, color="red")
-plt.xticks(fontsize=12)
-plt.yticks(fontsize=12)
-plt.show()
+    sns.lineplot(data=diamonds_sorted, x="carat", y="rolling_price", color="blue", linewidth=2, ax=ax)
+    ax.set_title("📈 How Carat Size Affects Diamond Price", fontsize=16, fontweight="bold")
+    ax.set_xlabel("Carat Size", fontsize=14)
+    ax.set_ylabel("Median Price ($)", fontsize=14)
+    st.pyplot(fig)
+
+# User Interaction in Streamlit
+st.write("## Choose a visualization to display:")
+
+# Add a radio button to select a plot
+chart_option = st.radio("Select a chart:", ["Boxplot - Cut vs Price", "Line Chart - Carat vs Price"])
+
+# Show the selected chart
+if chart_option == "Boxplot - Cut vs Price":
+    plot_boxplot()
+else:
+    plot_linechart()
 
